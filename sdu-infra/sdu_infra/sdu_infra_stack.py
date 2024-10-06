@@ -8,7 +8,7 @@ class SduInfraStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
         
-        bucket = s3.Bucket(self, "XXXXXXXXXXXX",
+        bucket = s3.Bucket(self, "sdu-incoming",
             bucket_name=f"sdu-incoming-{self.account}-{self.region}",
             auto_delete_objects=True,
             encryption=s3.BucketEncryption.S3_MANAGED
@@ -25,6 +25,9 @@ class SduInfraStack(Stack):
                 'kms:ReEncrypt*',
                 'kms:GenerateDataKey*',
                 'kms:DescribeKey',
+                'secretsmanager:CreateSecret',
+                'secretsmanager:PutSecretValue',
+                'secretsmanager:GetSecretValue'
             ],
             resources= ['*'],
         )

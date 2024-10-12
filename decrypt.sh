@@ -1,0 +1,1 @@
+python sdu_client.py decrypt --data_source_type voice --input_dir sdu-incoming-590183920655-ap-southeast-1 --input_file_name voice_1_encrypted.csv --output_dir data/processed --output_file_name voice_1_decrypted.csv

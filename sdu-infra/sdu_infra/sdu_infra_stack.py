@@ -58,3 +58,4 @@ class SduInfraStack(Stack):
                 "SecretName": "data-key"
             }
         )
+        

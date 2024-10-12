@@ -50,17 +50,30 @@ class sdu_client():
         response = secrets_manager.get_secret_value(SecretId='data-key')
         secret_value = response['SecretString']
         key = secret_value[:16].encode('utf-8')
-        iv = secret_value[16:24].encode('utf-8')
-        ctr = Counter.new(64, prefix=iv, initial_value=0)
-        self.encrypt_cipher = AES.new(key, AES.MODE_CTR, counter=ctr)
-        self.decrypt_cipher = AES.new(key, AES.MODE_CTR, counter=ctr)
+        # ECB mode does not require an IV
+        self.encrypt_cipher = AES.new(key, AES.MODE_ECB)
+        self.decrypt_cipher = AES.new(key, AES.MODE_ECB)
 
     def encrypt(self, plaintext):
-        ciphertext = self.encrypt_cipher.encrypt(plaintext.encode('utf-8'))
+        # Pad plaintext to be a multiple of block size
+        padded_plaintext = self._pad(plaintext.encode('utf-8'))
+        ciphertext = self.encrypt_cipher.encrypt(padded_plaintext)
         return base64.b64encode(ciphertext).decode('utf-8')
         
     def decrypt(self, ciphertext):
-        return self.decrypt_cipher.decrypt(base64.b64decode(ciphertext)).decode('utf-8')
+        decoded_ciphertext = base64.b64decode(ciphertext)
+        decrypted_padded = self.decrypt_cipher.decrypt(decoded_ciphertext)
+        return self._unpad(decrypted_padded).decode('utf-8')
+
+    def _pad(self, data):
+        # Pad data to be a multiple of 16 bytes (AES block size)
+        pad_length = 16 - (len(data) % 16)
+        return data + bytes([pad_length] * pad_length)
+
+    def _unpad(self, data):
+        # Remove padding
+        pad_length = data[-1]
+        return data[:-pad_length]
     
 
     def encrypt_and_upload_file(self, data_source_type, input_dir, input_file_name, 
